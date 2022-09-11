@@ -1,5 +1,12 @@
 //@version=5
-strategy("Strategy IV", overlay=true, initial_capital=100, default_qty_type=strategy.percent_of_equity)
+
+
+
+indicator_name = "Strategy IV"
+initial_capital= 100
+strategy(indicator_name , initial_capital = initial_capital,default_qty_value = initial_capital, overlay=true)
+
+//strategy("Strategy IV", overlay=true, initial_capital=100, default_qty_type=strategy.percent_of_equity)
 
 price = plot(close, title="Close Line", color=color.blue, display=display.none)
 
@@ -1324,53 +1331,7 @@ if srcrossdown ? na : 1
 txt4 = "🡇           VOLUME           🡇"
 table.cell(statuswindow, 0, 0, text=txt4, bgcolor=color.new(#000000, 50), text_color=color.white, text_size=size.small)
 
-//On Balance Volume Status
-if obvdivup ? 1 : na
-    table.cell(statuswindow, 0, 1, text=str.tostring(obvdivupstatus), bgcolor=color.new(#00bcd4, 50), text_color=color.white, text_size=size.small)
-if obvdivup ? na : 1
-    table.clear(statuswindow, 0, 1)
-if obvdivdown ? 1 : na
-    table.cell(statuswindow, 0, 2, text=str.tostring(obvdivdownstatus), bgcolor=color.new(#e91e63, 50), text_color=color.white, text_size=size.small)
-if obvdivdown ? na : 1
-    table.clear(statuswindow, 0, 2)
 
-//Chaikin Money Flow Status
-if cmfcrossup ? 1 : na
-    table.cell(statuswindow, 0, 3, text=str.tostring(cmfcrossupstatus), bgcolor=color.new(#00bcd4, 50), text_color=color.white, text_size=size.small)
-if cmfcrossup ? na : 1
-    table.clear(statuswindow, 0, 3)
-if cmfcrossdown ? 1 : na
-    table.cell(statuswindow, 0, 4, text=str.tostring(cmfcrossdownstatus), bgcolor=color.new(#e91e63, 50), text_color=color.white, text_size=size.small)
-if cmfcrossdown ? na : 1
-    table.clear(statuswindow, 0, 4)
-if cmflevup ? 1 : na
-    table.cell(statuswindow, 0,5, text=str.tostring(cmflevupstatus), bgcolor=color.new(#00bcd4, 50), text_color=color.white, text_size=size.small)
-if cmflevdown ? 1 : na
-    table.cell(statuswindow, 0, 5, text=str.tostring(cmflevdownstatus), bgcolor=color.new(#e91e63, 50), text_color=color.white, text_size=size.small)
-
-//VWAP Status
-if vwapcrossup ? 1 : na
-    table.cell(statuswindow, 0, 6, text=str.tostring(vwapcrossupstatus), bgcolor=color.new(#00bcd4, 50), text_color=color.white, text_size=size.small)
-if vwapcrossup ? na : 1
-    table.clear(statuswindow, 0, 6)
-if vwapcrossdown ? 1 : na
-    table.cell(statuswindow, 0, 7, text=str.tostring(vwapcrossdownstatus), bgcolor=color.new(#e91e63, 50), text_color=color.white, text_size=size.small)
-if vwapcrossdown ? na : 1
-    table.clear(statuswindow, 0, 7)
-if vwaptrendup ? 1 : na
-    table.cell(statuswindow, 0,8, text=str.tostring(vwaptrendupstatus), bgcolor=color.new(#00bcd4, 50), text_color=color.white, text_size=size.small)
-if vwaptrenddown ? 1 : na
-    table.cell(statuswindow, 0, 8, text=str.tostring(vwaptrenddownstatus), bgcolor=color.new(#e91e63, 50), text_color=color.white, text_size=size.small)
-
-//Candle Pattern Status
-if bulleng ? 1 : na
-    table.cell(statuswindow, 0, 9, text=str.tostring(bullengstatus), bgcolor=color.new(#00bcd4, 50), text_color=color.white, text_size=size.small)
-if bulleng ? na : 1
-    table.clear(statuswindow, 0, 9)
-if beareng ? 1 : na
-    table.cell(statuswindow, 0, 10, text=str.tostring(bearengstatus), bgcolor=color.new(#e91e63, 50), text_color=color.white, text_size=size.small)
-if beareng ? na : 1
-    table.clear(statuswindow, 0, 10)
 
 
 //END▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
@@ -1396,15 +1357,47 @@ plotshape(printstopshort, title="Stop Short Label", style=shape.labeldown, locat
 ////////////////////////////////////////////////////////////////////////////////
 //STRATEGY TESTER▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
 
+
+float sl = na
+float tp = na
+entry_price = close
+
+
+//  TIME RUN RANGE  ========================================================================================================================================================================
+start_time= input.time(timestamp("1 Sep 2022"), title="start time", group="start strategy date")
+end_time= input.time(timestamp("31 Sep 2022"), title="end time", group="start strategy date")
+is_range_date() => time >= start_time and time <= end_time ? true : false
+
+
+//  POSITION CONDITION  =================================================================================================================================================
+longCondition =is_range_date() and  hma < close and out5 < hma and (tradetrendoption ? alternatelong and mabuy and longpositions : alternatelong and longpositions)
+shortCondition =is_range_date() and  hma > close and out5 > hma and (tradetrendoption ? alternateshort and masell and shortpositions : alternateshort and shortpositions)
+
+sl := longCondition ? low : high
+tp := entry_price * (1 + (longCondition ? 1.5 : -1.5))
+
+
+
+//  MONEY MANAGEMENT    ========================================================================================================================================================
+risk_perc = 0.01
+stop_change = (math.abs(entry_price - sl) * initial_capital) / entry_price
+//risk_value = strategy.equity * risk_perc
+risk_value = initial_capital * risk_perc
+position_value = (risk_value * initial_capital) / stop_change
+position_qty = position_value / entry_price
+
+
 //Long
-if tradetrendoption ? alternatelong and mabuy and longpositions : alternatelong and longpositions
-	strategy.entry("longposition", strategy.long, comment="Long Entry")
+if longCondition  and strategy.position_size == 0 
+	strategy.entry("longposition", strategy.long, comment="Long Entry",qty = position_qty)
+	strategy.exit("normal exit", "longposition", stop=sl,limit=tp)
 if (shortentry or printstoplong) and longpositions
 	strategy.close("longposition", comment="Long Exit")
 
 //Short
-if tradetrendoption ? alternateshort and masell and shortpositions : alternateshort and shortpositions
-	strategy.entry("shortposition", strategy.short, comment=" Short Entry")
+if shortCondition  and strategy.position_size == 0 
+	strategy.entry("shortposition", strategy.short, comment=" Short Entry",qty = position_qty)
+	strategy.exit("normal exit", "shortposition", stop=sl,limit=tp)
 if (longentry or printstopshort) and shortpositions
 	strategy.close("shortposition", comment="Short Exit")
 
